@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Olive Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --soil-dark: #3d2b1f;
+      --soil-mid: #5c4033;
+      --soil-light: #7a5c44;
+      --sidebar-bg: #2a1f17;
+      --panel-bg: rgba(42, 31, 23, 0.92);
+      --card-bg: #4a3728;
+      --card-hover: #5a4535;
+      --accent: #6b8e4e;
+      --accent-light: #8fbc6a;
+      --text: #f0e6d8;
+      --text-muted: #b8a894;
+      --border: rgba(255, 255, 255, 0.08);
+      --radius: 10px;
+      --yellow-border: #f5c518;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--soil-dark);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr 280px;
+      grid-template-rows: 56px 1fr;
+      height: 100vh;
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(90, 60, 40, 0.4) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(60, 40, 25, 0.3) 0%, transparent 50%),
+        linear-gradient(160deg, var(--soil-mid) 0%, var(--soil-dark) 60%, #2e1f14 100%);
+    }
+
+    .header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; }
+
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 14px; }
+
+    .user-badge {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .user-badge strong { color: var(--accent-light); }
+
+    .btn-header {
+      padding: 6px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .btn-header:hover { background: var(--card-hover); }
+
+    .save-indicator {
+      font-size: 0.75rem;
+      color: var(--accent-light);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .save-indicator.show { opacity: 1; }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); }
+
+    .sidebar-header h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .btn-new {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-new:hover { background: var(--accent-light); }
+
+    .draw-hint {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .step-badge {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(245, 197, 24, 0.15);
+      color: var(--yellow-border);
+    }
+
+    .tool-group { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+    .tool-group.hidden { display: none; }
+
+    .btn-tool {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .btn-tool:hover:not(:disabled) { background: var(--card-hover); }
+
+    .btn-tool.active {
+      border-color: var(--yellow-border);
+      background: rgba(245, 197, 24, 0.12);
+      color: var(--yellow-border);
+    }
+
+    .btn-tool:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-finish {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .btn-finish:hover:not(:disabled) { background: var(--accent-light); }
+
+    .greenhouse-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .greenhouse-list::-webkit-scrollbar { width: 5px; }
+    .greenhouse-list::-webkit-scrollbar-thumb { background: var(--soil-light); border-radius: 4px; }
+
+    .gh-item {
+      padding: 12px 14px;
+      margin-bottom: 4px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .gh-item:hover { background: var(--card-hover); }
+
+    .gh-item.active {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .gh-item-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; }
+
+    .gh-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .gh-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .canvas-area { position: relative; overflow: hidden; }
+
+    #farmCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+    .canvas-overlay {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      pointer-events: none;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .zoom-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 5;
+    }
+
+    .zoom-btn {
+      width: 40px; height: 40px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .zoom-btn:hover { background: var(--card-hover); }
+
+    .zoom-level {
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 0;
+    }
+
+    .control-panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--sidebar-bg);
+      border-left: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .panel-header { padding: 16px; border-bottom: 1px solid var(--border); }
+
+    .panel-header h2 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .control-group { margin-bottom: 20px; }
+
+    .control-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .control-value { font-size: 1.5rem; font-weight: 700; color: var(--accent-light); }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+    }
+
+    .control-row:last-child { border-bottom: none; }
+
+    .zone-list-item {
+      padding: 8px 10px;
+      margin-bottom: 4px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .zone-list-item:hover { background: var(--card-hover); }
+    .zone-list-item small { color: var(--text-muted); display: block; margin-top: 2px; }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(107, 142, 78, 0.2);
+      color: var(--accent-light);
+    }
+
+    .badge.idle { background: rgba(184, 168, 148, 0.15); color: var(--text-muted); }
+    .badge.edit { background: rgba(245, 197, 24, 0.2); color: var(--yellow-border); }
+
+    .panel-placeholder {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      text-align: center;
+      padding: 40px 12px;
+    }
+
+    .slider-wrap { margin-top: 8px; }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .slider-label span:last-child { color: var(--accent-light); font-weight: 600; }
+
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+    .nav-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .nav-row button { flex: 1; }
+
+    .view-panel {
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sound-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 0.8rem;
+    }
+
+    .sound-toggle input { width: auto; accent-color: var(--accent); cursor: pointer; }
+
+    .btn-action {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-action:hover { background: var(--card-hover); }
+
+    .btn-action.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn-action.primary:hover { background: var(--accent-light); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .modal {
+      background: var(--sidebar-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      width: 340px;
+      max-width: 90vw;
+    }
+
+    .modal h3 { font-size: 1.1rem; margin-bottom: 6px; }
+    .modal p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; }
+
+    .form-field { margin-bottom: 14px; }
+
+    .form-field label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-field input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .form-field input:focus { outline: none; border-color: var(--accent); }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    .modal-actions button {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-save { background: var(--accent); color: #fff; }
+    .btn-save:hover { background: var(--accent-light); }
+
+    .btn-cancel {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border) !important;
+    }
+
+    .btn-cancel:hover { background: var(--card-hover); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">🫒</div>
+        <span>Olive Agent</span>
+      </div>
+      <div class="header-right">
+        <span class="save-indicator" id="saveIndicator">Saved ✓</span>
+        <div class="user-badge">User: <strong id="userDisplay">—</strong></div>
+        <button class="btn-header" id="btnSwitchUser">Switch User</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2 id="sidebarTitle">My Greenhouses</h2>
+        <button class="btn-new" id="btnNewGreenhouse"><span>+</span> New Greenhouse</button>
+        <p class="draw-hint" id="drawHint">Step 1: Click "New Greenhouse", then drag a rectangle.</p>
+        <div class="step-badge hidden" id="stepBadge"></div>
+        <div class="tool-group hidden" id="toolGroup">
+          <button class="btn-tool" id="btnToolRect" disabled>① Draw Rectangle</button>
+          <button class="btn-tool" id="btnToolDoor" disabled>② Place Door on Border</button>
+          <button class="btn-tool" id="btnToolZone" disabled>③ Draw Plant Zone (inside)</button>
+          <button class="btn-tool" id="btnToolBlock" disabled>④ Place White Blocks</button>
+          <button class="btn-tool btn-finish" id="btnFinish" disabled>Save Greenhouse</button>
+        </div>
+        <div class="tool-group hidden" id="editToolGroup">
+          <button class="btn-tool" id="btnEditDoor">Place Door</button>
+          <button class="btn-tool" id="btnEditZone">Draw Plant Zone</button>
+          <button class="btn-tool" id="btnEditBlock">Place White Blocks</button>
+          <button class="btn-tool btn-finish" id="btnSaveEdits">Save Changes</button>
+          <button class="btn-tool" id="btnCancelEdit">Cancel Edit</button>
+        </div>
+      </div>
+      <div class="greenhouse-list" id="greenhouseList">
+        <div class="gh-empty" id="ghEmpty">No greenhouses yet.<br />Click "New Greenhouse" to begin.</div>
+      </div>
+    </aside>
+
+    <main class="canvas-area">
+      <canvas id="farmCanvas"></canvas>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="btnZoomIn">+</button>
+        <div class="zoom-level" id="zoomLevel">100%</div>
+        <button class="zoom-btn" id="btnZoomOut">−</button>
+      </div>
+      <div class="canvas-overlay" id="canvasOverlay">Welcome — enter your name to start</div>
+    </main>
+
+    <aside class="control-panel">
+      <div class="panel-header"><h2>Controls</h2></div>
+      <div class="panel-body">
+        <div class="view-panel" id="viewPanel">
+          <div class="control-group">
+            <label>View</label>
+            <div class="slider-wrap">
+              <div class="slider-label"><span>Zoom</span><span id="zoomSliderVal">100%</span></div>
+              <input type="range" id="zoomSlider" min="25" max="400" value="100" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-label"><span>Brightness</span><span id="brightSliderVal">100%</span></div>
+              <input type="range" id="brightSlider" min="40" max="160" value="100" />
+            </div>
+            <div class="slider-wrap">
+              <div class="slider-label"><span>Color Shift</span><span id="hueSliderVal">0°</span></div>
+              <input type="range" id="hueSlider" min="0" max="360" value="0" />
+            </div>
+            <div class="sound-toggle">
+              <span>Transition Sound</span>
+              <input type="checkbox" id="soundToggle" checked />
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Navigate Plant Areas</label>
+            <div class="control-row"><span>Current</span><span id="navZoneLabel">—</span></div>
+            <div class="nav-row">
+              <button class="btn-action" id="btnPrevZone">← Prev</button>
+              <button class="btn-action" id="btnNextZone">Next →</button>
+            </div>
+            <button class="btn-action primary" id="btnTourZones" style="margin-top:8px">Auto Tour (random zoom)</button>
+          </div>
+        </div>
+        <div class="panel-placeholder" id="panelPlaceholder">Select a greenhouse to view or edit.</div>
+        <div id="panelControls" style="display:none;">
+          <div class="control-group">
+            <label>Greenhouse</label>
+            <div class="control-value" id="ctrlName">—</div>
+            <div class="control-row" style="margin-top:8px">
+              <span>Status</span>
+              <span class="badge" id="ctrlEditBadge">Viewing</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Summary</label>
+            <div class="control-row"><span>Zones</span><span id="ctrlZones">0</span></div>
+            <div class="control-row"><span>Total Plants</span><span id="ctrlPlants">0</span></div>
+            <div class="control-row"><span>Doors</span><span id="ctrlDoors">0</span></div>
+            <div class="control-row"><span>White Blocks</span><span id="ctrlBlocks">0</span></div>
+          </div>
+          <div class="control-group">
+            <label>Plant Zones</label>
+            <div id="zoneListPanel"></div>
+          </div>
+          <div class="control-group">
+            <label>Temperature</label>
+            <div class="control-row"><span>Current</span><span id="ctrlTemp">22°C</span></div>
+            <div class="slider-wrap"><input type="range" id="tempSlider" min="10" max="40" value="22" /></div>
+          </div>
+          <div class="control-group">
+            <label>Humidity</label>
+            <div class="control-row"><span>Current</span><span id="ctrlHumidity">65%</span></div>
+            <div class="slider-wrap"><input type="range" id="humiditySlider" min="20" max="95" value="65" /></div>
+          </div>
+          <div class="control-group">
+            <label>Status</label>
+            <div class="control-row"><span>Ventilation</span><span class="badge" id="ctrlVent">Auto</span></div>
+            <div class="control-row"><span>Irrigation</span><span class="badge idle" id="ctrlIrrigation">Idle</span></div>
+          </div>
+          <button class="btn-action primary" id="btnEditGreenhouse">Edit Greenhouse</button>
+          <button class="btn-action" id="btnRenameGreenhouse">Rename Greenhouse</button>
+          <button class="btn-action" id="btnToggleVent">Toggle Ventilation</button>
+          <button class="btn-action" id="btnRunIrrigation">Run Irrigation</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- User login -->
+  <div class="modal-backdrop open" id="userModal">
+    <div class="modal">
+      <h3>Welcome to Olive Agent</h3>
+      <p>Enter your name to access your saved greenhouses.</p>
+      <div class="form-field">
+        <label for="userName">Your Name</label>
+        <input type="text" id="userName" placeholder="e.g. Ahmed" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-save" id="btnUserLogin">Enter My Greenhouses</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone details (per green shape) -->
+  <div class="modal-backdrop" id="zoneModal">
+    <div class="modal">
+      <h3>Plant Zone Details</h3>
+      <p>Enter info for this green shape — it will appear inside the zone.</p>
+      <div class="form-field">
+        <label for="zoneName">Zone Name</label>
+        <input type="text" id="zoneName" placeholder="e.g. Row A" />
+      </div>
+      <div class="form-field">
+        <label for="zoneDate">Date</label>
+        <input type="date" id="zoneDate" />
+      </div>
+      <div class="form-field">
+        <label for="zonePlants">Number of Plants</label>
+        <input type="number" id="zonePlants" min="0" placeholder="0" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btnZoneCancel">Cancel</button>
+        <button class="btn-save" id="btnZoneSave">Add Zone</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Greenhouse name -->
+  <div class="modal-backdrop" id="ghModal">
+    <div class="modal">
+      <h3 id="ghModalTitle">Name Your Greenhouse</h3>
+      <p id="ghModalDesc">Give your greenhouse a name, then save your work.</p>
+      <div class="form-field">
+        <label for="ghName">Greenhouse Name</label>
+        <input type="text" id="ghName" placeholder="e.g. North Wing" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="btnModalCancel">Cancel</button>
+        <button class="btn-save" id="btnModalSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'olive-agent-user';
+    const MIN_ZONE_POINTS = 8;
+    const MIN_RECT_SIZE = 40;
+    const DOOR_SIZE = 28;
+    const BLOCK_W = 20;
+    const BLOCK_H = 10;
+    const EDGE_HIT = 14;
+    const ZOOM_MIN = 0.25;
+    const ZOOM_MAX = 4;
+    const ZOOM_STEP = 1.2;
+    const BORDER_WIDTH = 5;
+    const FLY_DURATION = 900;
+
+    const state = {
+      user: null,
+      greenhouses: [],
+      selectedId: null,
+      nextId: 1,
+      nextZoneId: 1,
+      viewport: { scale: 1, offsetX: 0, offsetY: 0 },
+      view: { brightness: 100, hue: 0 },
+      soundEnabled: true,
+      navZoneIndex: -1,
+      tourTimer: null,
+      anim: null,
+      draft: null,
+      tool: null,
+      editMode: false,
+      isDraggingRect: false,
+      rectStart: null,
+      previewRect: null,
+      isDrawingZone: false,
+      zonePoints: [],
+      pendingZonePoints: null,
+      renameMode: false,
+      sunPhase: 0.15,
+      sunRayPhase: 0,
+      sunRaf: null
+    };
+
+    const canvas = document.getElementById('farmCanvas');
+    const ctx = canvas.getContext('2d');
+    const overlayEl = document.getElementById('canvasOverlay');
+    let audioCtx = null;
+
+    function lw() { return BORDER_WIDTH / state.viewport.scale; }
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playSound(kind) {
+      if (!state.soundEnabled) return;
+      initAudio();
+      const tones = {
+        nav:    [{ f: 440, d: 0.12 }, { f: 554, d: 0.18 }],
+        block:  [{ f: 660, d: 0.08 }],
+        save:   [{ f: 523, d: 0.1 }, { f: 659, d: 0.15 }, { f: 784, d: 0.2 }],
+        zoom:   [{ f: 330, d: 0.06 }]
+      };
+      const seq = tones[kind] || tones.nav;
+      let t = audioCtx.currentTime;
+      seq.forEach(({ f, d }) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.07, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + d + 0.05);
+        t += d * 0.55;
+      });
+    }
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function animateViewport(target, onDone) {
+      if (state.anim) cancelAnimationFrame(state.anim.raf);
+      const start = {
+        scale: state.viewport.scale,
+        offsetX: state.viewport.offsetX,
+        offsetY: state.viewport.offsetY
+      };
+      const t0 = performance.now();
+      state.anim = { raf: null, start, target, t0, duration: target.duration || FLY_DURATION, onDone };
+
+      function tick(now) {
+        const p = Math.min(1, (now - t0) / state.anim.duration);
+        const e = easeInOutCubic(p);
+        state.viewport.scale = start.scale + (target.scale - start.scale) * e;
+        state.viewport.offsetX = start.offsetX + (target.offsetX - start.offsetX) * e;
+        state.viewport.offsetY = start.offsetY + (target.offsetY - start.offsetY) * e;
+        syncZoomSlider();
+        drawFarm();
+        if (p < 1) {
+          state.anim.raf = requestAnimationFrame(tick);
+        } else {
+          state.anim = null;
+          if (onDone) onDone();
+        }
+      }
+      state.anim.raf = requestAnimationFrame(tick);
+    }
+
+    function flyToWorld(wx, wy, scale, duration, playNavSound = true) {
+      const { w, h } = getCanvasSize();
+      const target = {
+        scale: Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, scale)),
+        offsetX: w / 2 - wx * scale,
+        offsetY: h / 2 - wy * scale,
+        duration
+      };
+      if (playNavSound) playSound('nav');
+      animateViewport(target);
+    }
+
+    function syncZoomSlider() {
+      const pct = Math.round(state.viewport.scale * 100);
+      const sl = document.getElementById('zoomSlider');
+      const vl = document.getElementById('zoomSliderVal');
+      if (sl) sl.value = pct;
+      if (vl) vl.textContent = pct + '%';
+      const zl = document.getElementById('zoomLevel');
+      if (zl) zl.textContent = pct + '%';
+    }
+
+    function setZoomFromSlider(pct) {
+      const { w, h } = getCanvasSize();
+      const cx = w / 2, cy = h / 2;
+      const newScale = pct / 100;
+      const wx = (cx - state.viewport.offsetX) / state.viewport.scale;
+      const wy = (cy - state.viewport.offsetY) / state.viewport.scale;
+      state.viewport.scale = newScale;
+      state.viewport.offsetX = cx - wx * newScale;
+      state.viewport.offsetY = cy - wy * newScale;
+      document.getElementById('zoomSliderVal').textContent = pct + '%';
+      drawFarm();
+    }
+
+    function getViewFilter() {
+      const b = state.view.brightness;
+      const h = state.view.hue;
+      return `brightness(${b}%) hue-rotate(${h}deg)`;
+    }
+
+    function userDataKey() { return `olive-agent-data-${state.user}`; }
+
+    function persistData() {
+      if (!state.user) return;
+      localStorage.setItem(userDataKey(), JSON.stringify({
+        greenhouses: state.greenhouses,
+        nextId: state.nextId,
+        nextZoneId: state.nextZoneId
+      }));
+      const el = document.getElementById('saveIndicator');
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    function loadUserData() {
+      const raw = localStorage.getItem(userDataKey());
+      if (!raw) {
+        state.greenhouses = [];
+        state.nextId = 1;
+        state.nextZoneId = 1;
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        state.nextId = data.nextId || 1;
+        state.nextZoneId = data.nextZoneId || 1;
+        state.greenhouses = (data.greenhouses || []).map(migrateGh);
+      } catch {
+        state.greenhouses = [];
+        state.nextId = 1;
+        state.nextZoneId = 1;
+      }
+    }
+
+    function migrateGh(gh) {
+      if (!gh.blocks) gh.blocks = [];
+      (gh.zones || []).forEach(z => {
+        if (!z.id) z.id = state.nextZoneId++;
+        if (!z.name) z.name = 'Zone';
+        if (!z.date) z.date = new Date().toISOString().slice(0, 10);
+        if (z.plants == null) z.plants = 0;
+        if (z.blocks?.length) {
+          gh.blocks.push(...z.blocks);
+          z.blocks = [];
+        }
+      });
+      if (!gh.doors) gh.doors = [];
+      return gh;
+    }
+
+    function loginUser(name) {
+      state.user = name.trim();
+      if (!state.user) return;
+      localStorage.setItem(STORAGE_KEY, state.user);
+      document.getElementById('userDisplay').textContent = state.user;
+      document.getElementById('userModal').classList.remove('open');
+      state.draft = null;
+      state.editMode = false;
+      state.selectedId = null;
+      state.tool = null;
+      document.getElementById('editToolGroup').classList.add('hidden');
+      document.getElementById('toolGroup').classList.add('hidden');
+      document.getElementById('panelPlaceholder').style.display = 'block';
+      document.getElementById('panelControls').style.display = 'none';
+      loadUserData();
+      renderList();
+      drawFarm();
+      overlayEl.textContent = `${state.user}'s greenhouses — select one or create new`;
+    }
+
+    function initUser() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        document.getElementById('userName').value = saved;
+        loginUser(saved);
+      }
+    }
+
+    function getTargetGh() {
+      if (state.draft) return state.draft;
+      if (state.editMode && state.selectedId) {
+        return state.greenhouses.find(g => g.id === state.selectedId);
+      }
+      return null;
+    }
+
+    function totalPlants(gh) {
+      return (gh.zones || []).reduce((s, z) => s + (z.plants || 0), 0);
+    }
+
+    function totalBlocks(gh) {
+      return (gh.blocks || []).length;
+    }
+
+    function getNavZones() {
+      const gh = getSelected();
+      if (!gh?.zones?.length) return [];
+      return gh.zones;
+    }
+
+    function updateNavLabel() {
+      const zones = getNavZones();
+      const el = document.getElementById('navZoneLabel');
+      if (!zones.length) { el.textContent = '—'; return; }
+      const i = state.navZoneIndex < 0 ? 0 : state.navZoneIndex % zones.length;
+      const z = zones[i];
+      el.textContent = `${z.name} (${z.plants} plants)`;
+    }
+
+    function flyToZone(index, randomZoom = true) {
+      const zones = getNavZones();
+      if (!zones.length) {
+        overlayEl.textContent = 'No plant zones — draw zones first';
+        return;
+      }
+      state.navZoneIndex = ((index % zones.length) + zones.length) % zones.length;
+      const z = zones[state.navZoneIndex];
+      const c = polygonCentroid(z.points);
+      const scale = randomZoom
+        ? 1.3 + Math.random() * 1.7
+        : state.viewport.scale;
+      flyToWorld(c.x, c.y, scale, FLY_DURATION);
+      updateNavLabel();
+      overlayEl.textContent = `Viewing zone: ${z.name}`;
+    }
+
+    function stopTour() {
+      if (state.tourTimer) {
+        clearInterval(state.tourTimer);
+        state.tourTimer = null;
+      }
+    }
+
+    function startTour() {
+      initAudio();
+      const zones = getNavZones();
+      if (!zones.length) {
+        overlayEl.textContent = 'No plant zones to tour';
+        document.getElementById('btnTourZones').textContent = 'Auto Tour (random zoom)';
+        return;
+      }
+      stopTour();
+      let i = state.navZoneIndex < 0 ? 0 : state.navZoneIndex;
+      flyToZone(i, true);
+      state.tourTimer = setInterval(() => {
+        i = (i + 1) % zones.length;
+        flyToZone(i, true);
+      }, FLY_DURATION + 1200);
+      overlayEl.textContent = 'Auto tour running — click again to stop';
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      drawFarm();
+    }
+
+    function getCanvasSize() {
+      return { w: canvas.width / devicePixelRatio, h: canvas.height / devicePixelRatio };
+    }
+
+    function screenToWorld(sx, sy) {
+      const { scale, offsetX, offsetY } = state.viewport;
+      return { x: (sx - offsetX) / scale, y: (sy - offsetY) / scale };
+    }
+
+    function getMouseWorld(e) {
+      const rect = canvas.getBoundingClientRect();
+      return screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function applyViewport() {
+      const { scale, offsetX, offsetY } = state.viewport;
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(scale, scale);
+    }
+
+    function normalizeRect(x1, y1, x2, y2) {
+      return { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
+    }
+
+    function pointInRect(px, py, r, inset = 0) {
+      return px >= r.x + inset && px <= r.x + r.w - inset &&
+             py >= r.y + inset && py <= r.y + r.h - inset;
+    }
+
+    function clipToRect(p, r, inset = 2) {
+      return {
+        x: Math.max(r.x + inset, Math.min(r.x + r.w - inset, p.x)),
+        y: Math.max(r.y + inset, Math.min(r.y + r.h - inset, p.y))
+      };
+    }
+
+    function drawPath(points, closed) {
+      if (points.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      if (closed) ctx.closePath();
+    }
+
+    function pointInPolygon(px, py, points) {
+      drawPath(points, true);
+      return ctx.isPointInPath(px, py);
+    }
+
+    function polygonCentroid(points) {
+      let cx = 0, cy = 0;
+      points.forEach(p => { cx += p.x; cy += p.y; });
+      return { x: cx / points.length, y: cy / points.length };
+    }
+
+    function findZoneAt(gh, wx, wy) {
+      for (let i = (gh.zones || []).length - 1; i >= 0; i--) {
+        const z = gh.zones[i];
+        if (pointInPolygon(wx, wy, z.points)) return z;
+      }
+      return null;
+    }
+
+    function getDoorRect(rect, door) {
+      const half = DOOR_SIZE / 2;
+      const pad = BORDER_WIDTH / 2;
+      if (door.edge === 'top') {
+        const cx = rect.x + door.t * rect.w;
+        return { x: cx - half, y: rect.y - pad, w: DOOR_SIZE, h: BORDER_WIDTH + 4 };
+      }
+      if (door.edge === 'bottom') {
+        const cx = rect.x + door.t * rect.w;
+        return { x: cx - half, y: rect.y + rect.h - pad - 2, w: DOOR_SIZE, h: BORDER_WIDTH + 4 };
+      }
+      if (door.edge === 'left') {
+        const cy = rect.y + door.t * rect.h;
+        return { x: rect.x - pad, y: cy - half, w: BORDER_WIDTH + 4, h: DOOR_SIZE };
+      }
+      const cy = rect.y + door.t * rect.h;
+      return { x: rect.x + rect.w - pad - 2, y: cy - half, w: BORDER_WIDTH + 4, h: DOOR_SIZE };
+    }
+
+    function drawDoors(rect, doors) {
+      doors.forEach(door => {
+        const dr = getDoorRect(rect, door);
+        ctx.fillStyle = '#c4a35a';
+        ctx.strokeStyle = '#1a1a1a';
+        ctx.lineWidth = 3 / state.viewport.scale;
+        ctx.fillRect(dr.x, dr.y, dr.w, dr.h);
+        ctx.strokeRect(dr.x, dr.y, dr.w, dr.h);
+      });
+    }
+
+    function drawGhBlocks(blocks) {
+      (blocks || []).forEach(b => {
+        const hw = BLOCK_W / 2, hh = BLOCK_H / 2;
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.lineWidth = 1.2 / state.viewport.scale;
+        ctx.fillRect(b.x - hw, b.y - hh, BLOCK_W, BLOCK_H);
+        ctx.strokeRect(b.x - hw, b.y - hh, BLOCK_W, BLOCK_H);
+      });
+    }
+
+    function drawZoneShape(zone, selected) {
+      drawPath(zone.points, true);
+      ctx.fillStyle = selected ? 'rgba(90, 122, 66, 0.82)' : 'rgba(74, 106, 53, 0.72)';
+      ctx.fill();
+      ctx.strokeStyle = selected ? '#a8d080' : '#6b8e4e';
+      ctx.lineWidth = 2 / state.viewport.scale;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      const c = polygonCentroid(zone.points);
+      const fs = Math.max(9, 11 / state.viewport.scale);
+      const lh = fs * 1.15;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#f0e6d8';
+      ctx.font = `700 ${fs}px "DM Sans", sans-serif`;
+      ctx.fillText(zone.name || 'Zone', c.x, c.y - lh);
+      ctx.font = `500 ${fs * 0.8}px "DM Sans", sans-serif`;
+      ctx.fillStyle = 'rgba(240,230,216,0.9)';
+      ctx.fillText(zone.date || '', c.x, c.y);
+      ctx.fillStyle = '#d4edc4';
+      ctx.font = `600 ${fs * 0.85}px "DM Sans", sans-serif`;
+      ctx.fillText(`${zone.plants ?? 0} plants`, c.x, c.y + lh);
+    }
+
+    function drawGreenhouseBody(rect, selected) {
+      ctx.fillStyle = '#0d0d0d';
+      ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+      ctx.strokeStyle = selected ? '#ffe566' : '#f5c518';
+      ctx.lineWidth = lw();
+      ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    function drawGreenhouse(gh) {
+      const selected = gh.id === state.selectedId || (state.draft === gh);
+      drawGreenhouseBody(gh.rect, selected);
+      drawDoors(gh.rect, gh.doors || []);
+      (gh.zones || []).forEach(z => drawZoneShape(z, selected));
+      drawGhBlocks(gh.blocks);
+
+      const c = { x: gh.rect.x + gh.rect.w / 2, y: gh.rect.y - 14 / state.viewport.scale };
+      const fs = 12 / state.viewport.scale;
+      ctx.fillStyle = '#f5c518';
+      ctx.font = `700 ${fs}px "DM Sans", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(gh.name, c.x, c.y);
+    }
+
+    function drawDraftPreview() {
+      if (!state.draft) return;
+      const { rect, doors, zones } = state.draft;
+      const preview = state.previewRect || rect;
+
+      if (preview && preview.w > 0 && preview.h > 0) {
+        drawGreenhouseBody(preview, true);
+        if (rect) drawDoors(preview, doors || []);
+      }
+
+      (zones || []).forEach(z => drawZoneShape(z, true));
+      drawGhBlocks(state.draft.blocks);
+
+      if (state.isDrawingZone && state.zonePoints.length > 0) {
+        drawPath(state.zonePoints, false);
+        ctx.strokeStyle = 'rgba(143, 188, 106, 0.9)';
+        ctx.lineWidth = 2.5 / state.viewport.scale;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    }
+
+    function drawSun(w, h) {
+      const t = state.sunPhase;
+      const x = -55 + (w + 110) * t;
+      const arc = Math.sin(t * Math.PI);
+      const y = h * 0.13 - arc * h * 0.07;
+      const baseR = Math.min(34, Math.max(20, w * 0.036));
+      const breathe = 1 + Math.sin(state.sunRayPhase * 1.6) * 0.035;
+      const r = baseR * breathe;
+
+      const sky = ctx.createLinearGradient(0, 0, 0, h * 0.42);
+      sky.addColorStop(0, `rgba(255, 210, 120, ${0.14 + arc * 0.1})`);
+      sky.addColorStop(0.45, 'rgba(255, 170, 70, 0.05)');
+      sky.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, h * 0.42);
+
+      const outerGlow = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * 4.2);
+      outerGlow.addColorStop(0, 'rgba(255, 230, 150, 0.55)');
+      outerGlow.addColorStop(0.35, 'rgba(255, 190, 80, 0.18)');
+      outerGlow.addColorStop(0.7, 'rgba(255, 140, 40, 0.05)');
+      outerGlow.addColorStop(1, 'rgba(255, 120, 30, 0)');
+      ctx.fillStyle = outerGlow;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 4.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(state.sunRayPhase * 0.35);
+      for (let i = 0; i < 14; i++) {
+        ctx.save();
+        ctx.rotate((Math.PI * 2 * i) / 14);
+        const rayLen = r * (2.6 + (i % 2) * 0.5);
+        const rayW = r * 0.22;
+        const rg = ctx.createLinearGradient(r * 0.85, 0, rayLen, 0);
+        rg.addColorStop(0, 'rgba(255, 240, 180, 0.7)');
+        rg.addColorStop(0.45, 'rgba(255, 200, 90, 0.25)');
+        rg.addColorStop(1, 'rgba(255, 160, 50, 0)');
+        ctx.fillStyle = rg;
+        ctx.beginPath();
+        ctx.moveTo(r * 0.75, -rayW * 0.35);
+        ctx.lineTo(rayLen, 0);
+        ctx.lineTo(r * 0.75, rayW * 0.35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.restore();
+
+      const midGlow = ctx.createRadialGradient(x, y, r * 0.1, x, y, r * 1.65);
+      midGlow.addColorStop(0, 'rgba(255, 248, 220, 0.95)');
+      midGlow.addColorStop(0.55, 'rgba(255, 210, 80, 0.55)');
+      midGlow.addColorStop(1, 'rgba(255, 150, 40, 0)');
+      ctx.fillStyle = midGlow;
+      ctx.beginPath();
+      ctx.arc(x, y, r * 1.65, 0, Math.PI * 2);
+      ctx.fill();
+
+      const core = ctx.createRadialGradient(x - r * 0.25, y - r * 0.28, r * 0.05, x, y, r);
+      core.addColorStop(0, '#fffef5');
+      core.addColorStop(0.35, '#ffe566');
+      core.addColorStop(0.75, '#ffb300');
+      core.addColorStop(1, '#ff8f00');
+      ctx.fillStyle = core;
+      ctx.shadowColor = 'rgba(255, 200, 80, 0.6)';
+      ctx.shadowBlur = r * 0.8;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function sunAnimationLoop() {
+      state.sunPhase = (state.sunPhase + 0.00014) % 1;
+      state.sunRayPhase += 0.006;
+      drawFarm();
+      state.sunRaf = requestAnimationFrame(sunAnimationLoop);
+    }
+
+    function startSunAnimation() {
+      if (state.sunRaf) cancelAnimationFrame(state.sunRaf);
+      state.sunRaf = requestAnimationFrame(sunAnimationLoop);
+    }
+
+    function drawFarm() {
+      const { w, h } = getCanvasSize();
+      ctx.save();
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.save();
+      applyViewport();
+      ctx.filter = getViewFilter();
+
+      const worldW = w / state.viewport.scale + 200;
+      const worldH = h / state.viewport.scale + 200;
+      const grad = ctx.createLinearGradient(0, 0, worldW, worldH);
+      grad.addColorStop(0, '#6b4c35');
+      grad.addColorStop(0.5, '#5a3d2b');
+      grad.addColorStop(1, '#4a3020');
+      ctx.fillStyle = grad;
+      ctx.fillRect(-100, -100, worldW, worldH);
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+      ctx.lineWidth = 1 / state.viewport.scale;
+      for (let y = -100; y < worldH; y += 28) {
+        ctx.beginPath();
+        ctx.moveTo(-100, y);
+        ctx.lineTo(worldW, y);
+        ctx.stroke();
+      }
+
+      state.greenhouses.forEach(gh => {
+        if (state.editMode && gh.id === state.selectedId) return;
+        drawGreenhouse(gh);
+      });
+
+      if (state.editMode && state.selectedId) {
+        const gh = state.greenhouses.find(g => g.id === state.selectedId);
+        if (gh) drawGreenhouse(gh);
+      }
+
+      drawDraftPreview();
+
+      if (!state.draft && !state.editMode && state.greenhouses.length === 0 && state.user) {
+        const fs = 15 / state.viewport.scale;
+        ctx.fillStyle = 'rgba(240,230,216,0.25)';
+        ctx.font = `500 ${fs}px "DM Sans", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Click "New Greenhouse" then drag a rectangle', w / 2 / state.viewport.scale, h / 2 / state.viewport.scale);
+      }
+
+      ctx.restore();
+      drawSun(w, h);
+      ctx.restore();
+      syncZoomSlider();
+    }
+
+    function findGreenhouseAt(wx, wy) {
+      for (let i = state.greenhouses.length - 1; i >= 0; i--) {
+        if (pointInRect(wx, wy, state.greenhouses[i].rect)) return state.greenhouses[i];
+      }
+      return null;
+    }
+
+    function findNearestEdge(wx, wy, rect) {
+      const th = EDGE_HIT / state.viewport.scale;
+      const edges = [
+        { edge: 'top', dist: Math.abs(wy - rect.y), t: (wx - rect.x) / rect.w },
+        { edge: 'bottom', dist: Math.abs(wy - (rect.y + rect.h)), t: (wx - rect.x) / rect.w },
+        { edge: 'left', dist: Math.abs(wx - rect.x), t: (wy - rect.y) / rect.h },
+        { edge: 'right', dist: Math.abs(wx - (rect.x + rect.w)), t: (wy - rect.y) / rect.h }
+      ];
+      edges.sort((a, b) => a.dist - b.dist);
+      const best = edges[0];
+      if (best.dist > th || best.t < 0.08 || best.t > 0.92) return null;
+      return { edge: best.edge, t: best.t };
+    }
+
+    function simplifyPoints(points) {
+      if (points.length <= MIN_ZONE_POINTS) return points;
+      const step = Math.max(1, Math.floor(points.length / 80));
+      const out = [];
+      for (let i = 0; i < points.length; i += step) out.push(points[i]);
+      const last = points[points.length - 1];
+      if (out[out.length - 1] !== last) out.push(last);
+      return out;
+    }
+
+    function isModalOpen() {
+      return document.getElementById('zoneModal').classList.contains('open') ||
+             document.getElementById('ghModal').classList.contains('open') ||
+             document.getElementById('userModal').classList.contains('open');
+    }
+
+    function setTool(tool) {
+      state.tool = tool;
+      ['btnToolRect','btnToolDoor','btnToolZone','btnToolBlock',
+       'btnEditDoor','btnEditZone','btnEditBlock'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('active', el.id.includes(tool === 'rect' ? 'Rect' : tool === 'door' ? 'Door' : tool === 'zone' ? 'Zone' : 'Block') && (
+          (tool === 'rect' && id.includes('Rect')) ||
+          (tool === 'door' && id.includes('Door')) ||
+          (tool === 'zone' && id.includes('Zone')) ||
+          (tool === 'block' && id.includes('Block'))
+        ));
+      });
+
+      document.querySelectorAll('.btn-tool').forEach(btn => btn.classList.remove('active'));
+      const map = {
+        rect: 'btnToolRect', door: state.editMode ? 'btnEditDoor' : 'btnToolDoor',
+        zone: state.editMode ? 'btnEditZone' : 'btnToolZone',
+        block: state.editMode ? 'btnEditBlock' : 'btnToolBlock'
+      };
+      const activeBtn = document.getElementById(map[tool]);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const hints = {
+        rect: 'Drag to draw greenhouse rectangle (yellow border, black fill)',
+        door: 'Click the yellow border to place door blocks',
+        zone: 'Draw freehand green shapes inside the rectangle',
+        block: 'Click anywhere inside the greenhouse to place white rectangular blocks'
+      };
+      overlayEl.textContent = hints[tool] || '';
+      canvas.style.cursor = tool === 'door' || tool === 'block' ? 'pointer' : 'crosshair';
+      drawFarm();
+    }
+
+    function updateCreateTools() {
+      const hasDraft = !!state.draft && !state.editMode;
+      const hasRect = hasDraft && !!state.draft.rect;
+      document.getElementById('toolGroup').classList.toggle('hidden', !hasDraft);
+      document.getElementById('stepBadge').classList.toggle('hidden', !hasDraft);
+      document.getElementById('drawHint').classList.toggle('hidden', hasDraft || state.editMode);
+      document.getElementById('btnToolRect').disabled = !hasDraft;
+      document.getElementById('btnToolDoor').disabled = !hasRect;
+      document.getElementById('btnToolZone').disabled = !hasRect;
+      document.getElementById('btnToolBlock').disabled = !hasRect;
+      document.getElementById('btnFinish').disabled = !hasRect;
+
+      if (hasDraft) {
+        const steps = { rect: 'Step 1 — Rectangle', door: 'Step 2 — Doors', zone: 'Step 3 — Plant Zones', block: 'Step 4 — White Blocks' };
+        document.getElementById('stepBadge').textContent = steps[state.tool] || 'Building…';
+      }
+    }
+
+    function startNewGreenhouse() {
+      if (!state.user) { document.getElementById('userModal').classList.add('open'); return; }
+      state.draft = { rect: null, doors: [], zones: [], blocks: [], name: '' };
+      state.editMode = false;
+      state.selectedId = null;
+      state.previewRect = null;
+      state.isDraggingRect = false;
+      state.isDrawingZone = false;
+      state.zonePoints = [];
+      document.getElementById('editToolGroup').classList.add('hidden');
+      setTool('rect');
+      updateCreateTools();
+      document.getElementById('panelPlaceholder').style.display = 'block';
+      document.getElementById('panelControls').style.display = 'none';
+      renderList();
+      drawFarm();
+    }
+
+    function startEditGreenhouse() {
+      const gh = getSelected();
+      if (!gh || state.draft) return;
+      state.editMode = true;
+      state.draft = null;
+      document.getElementById('toolGroup').classList.add('hidden');
+      document.getElementById('editToolGroup').classList.remove('hidden');
+      document.getElementById('stepBadge').classList.remove('hidden');
+      document.getElementById('stepBadge').textContent = 'Editing — make changes then Save';
+      document.getElementById('ctrlEditBadge').textContent = 'Editing';
+      document.getElementById('ctrlEditBadge').className = 'badge edit';
+      setTool('zone');
+      overlayEl.textContent = `Editing: ${gh.name} — draw zones, place doors or blocks, then Save Changes`;
+      drawFarm();
+    }
+
+    function cancelEdit() {
+      state.editMode = false;
+      state.tool = null;
+      document.getElementById('editToolGroup').classList.add('hidden');
+      document.getElementById('stepBadge').classList.add('hidden');
+      const gh = getSelected();
+      if (gh) {
+        document.getElementById('ctrlEditBadge').textContent = 'Viewing';
+        document.getElementById('ctrlEditBadge').className = 'badge';
+        overlayEl.textContent = `Viewing: ${gh.name}`;
+      }
+      drawFarm();
+    }
+
+    function saveEdits() {
+      state.editMode = false;
+      state.tool = null;
+      document.getElementById('editToolGroup').classList.add('hidden');
+      document.getElementById('stepBadge').classList.add('hidden');
+      persistData();
+      playSound('save');
+      const gh = getSelected();
+      if (gh) {
+        document.getElementById('ctrlEditBadge').textContent = 'Viewing';
+        document.getElementById('ctrlEditBadge').className = 'badge';
+        updatePanel(gh);
+        overlayEl.textContent = `Saved! Viewing: ${gh.name}`;
+      }
+      drawFarm();
+    }
+
+    function finishRect(r) {
+      if (r.w < MIN_RECT_SIZE || r.h < MIN_RECT_SIZE) {
+        overlayEl.textContent = 'Rectangle too small — drag a larger area';
+        state.previewRect = null;
+        drawFarm();
+        return;
+      }
+      state.draft.rect = r;
+      state.previewRect = null;
+      setTool('door');
+      updateCreateTools();
+    }
+
+    function placeDoor(wx, wy) {
+      const gh = getTargetGh();
+      if (!gh?.rect) return;
+      const edge = findNearestEdge(wx, wy, gh.rect);
+      if (!edge) { overlayEl.textContent = 'Click closer to the yellow border'; return; }
+      const exists = gh.doors.some(d => d.edge === edge.edge && Math.abs(d.t - edge.t) < 0.12);
+      if (!exists) gh.doors.push(edge);
+      if (state.editMode) updatePanel(gh);
+      drawFarm();
+    }
+
+    function placeBlock(wx, wy) {
+      const gh = getTargetGh();
+      if (!gh?.rect) return;
+      if (!pointInRect(wx, wy, gh.rect, 6)) {
+        overlayEl.textContent = 'Place blocks anywhere inside the greenhouse';
+        return;
+      }
+      if (!gh.blocks) gh.blocks = [];
+      const minDist = Math.min(BLOCK_W, BLOCK_H) * 0.8;
+      const tooClose = gh.blocks.some(b => (b.x - wx) ** 2 + (b.y - wy) ** 2 < minDist ** 2);
+      if (!tooClose) {
+        gh.blocks.push({ x: wx, y: wy });
+        playSound('block');
+        if (state.editMode) { updatePanel(gh); persistData(); }
+      }
+      drawFarm();
+    }
+
+    function openZoneModal(points) {
+      state.pendingZonePoints = points;
+      const n = (getTargetGh()?.zones?.length || 0) + 1;
+      document.getElementById('zoneName').value = `Zone ${n}`;
+      document.getElementById('zoneDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('zonePlants').value = '';
+      document.getElementById('zoneModal').classList.add('open');
+      document.getElementById('zoneName').focus();
+    }
+
+    function saveZone() {
+      const name = document.getElementById('zoneName').value.trim();
+      const date = document.getElementById('zoneDate').value;
+      const plants = parseInt(document.getElementById('zonePlants').value, 10) || 0;
+      if (!name || !date || !state.pendingZonePoints) return;
+
+      const gh = getTargetGh();
+      if (!gh) return;
+      if (!gh.zones) gh.zones = [];
+
+      gh.zones.push({
+        id: state.nextZoneId++,
+        name, date, plants,
+        points: state.pendingZonePoints
+      });
+
+      state.pendingZonePoints = null;
+      document.getElementById('zoneModal').classList.remove('open');
+      overlayEl.textContent = 'Zone added. Draw more zones, place blocks, or save';
+      if (state.editMode) updatePanel(gh);
+      drawFarm();
+    }
+
+    function cancelZone() {
+      state.pendingZonePoints = null;
+      document.getElementById('zoneModal').classList.remove('open');
+      drawFarm();
+    }
+
+    function finishZoneDraw() {
+      state.isDrawingZone = false;
+      const gh = getTargetGh();
+      if (!gh?.rect) return;
+
+      if (state.zonePoints.length < MIN_ZONE_POINTS) {
+        state.zonePoints = [];
+        overlayEl.textContent = 'Zone too small — draw a larger shape';
+        drawFarm();
+        return;
+      }
+
+      const points = simplifyPoints(state.zonePoints.map(p => clipToRect(p, gh.rect, 4)));
+      state.zonePoints = [];
+      openZoneModal(points);
+    }
+
+    function openGhModal(rename = false) {
+      state.renameMode = rename;
+      document.getElementById('ghModalTitle').textContent = rename ? 'Rename Greenhouse' : 'Name Your Greenhouse';
+      document.getElementById('ghModalDesc').textContent = rename
+        ? 'Enter a new name for this greenhouse.'
+        : 'Give your greenhouse a name, then save your work.';
+      const gh = rename ? getSelected() : null;
+      document.getElementById('ghName').value = rename && gh ? gh.name : `Greenhouse ${state.nextId}`;
+      document.getElementById('ghModal').classList.add('open');
+      document.getElementById('ghName').focus();
+    }
+
+    function saveGreenhouse() {
+      const name = document.getElementById('ghName').value.trim();
+      if (!name) return;
+
+      if (state.renameMode) {
+        const gh = getSelected();
+        if (gh) {
+          gh.name = name;
+          persistData();
+          updatePanel(gh);
+          renderList();
+        }
+        state.renameMode = false;
+        document.getElementById('ghModal').classList.remove('open');
+        drawFarm();
+        return;
+      }
+
+      if (!state.draft?.rect) return;
+
+      const gh = {
+        id: state.nextId++,
+        name,
+        rect: { ...state.draft.rect },
+        doors: [...(state.draft.doors || [])],
+        zones: (state.draft.zones || []).map(z => ({ ...z, points: [...z.points] })),
+        blocks: [...(state.draft.blocks || [])],
+        temp: 22, humidity: 65, ventilation: 'Auto', irrigation: 'Idle'
+      };
+
+      state.greenhouses.push(gh);
+      state.draft = null;
+      state.tool = null;
+      document.getElementById('ghModal').classList.remove('open');
+      updateCreateTools();
+      persistData();
+      playSound('save');
+      selectGreenhouse(gh.id);
+    }
+
+    function renderList() {
+      const listEl = document.getElementById('greenhouseList');
+      const emptyEl = document.getElementById('ghEmpty');
+      listEl.querySelectorAll('.gh-item').forEach(el => el.remove());
+
+      if (!state.user) {
+        emptyEl.style.display = 'block';
+        emptyEl.textContent = 'Please log in to see your greenhouses.';
+        return;
+      }
+
+      if (state.greenhouses.length === 0) {
+        emptyEl.style.display = 'block';
+        emptyEl.innerHTML = 'No greenhouses yet.<br />Click "New Greenhouse" to begin.';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      state.greenhouses.forEach(gh => {
+        const el = document.createElement('div');
+        el.className = 'gh-item' + (gh.id === state.selectedId ? ' active' : '');
+        el.innerHTML = `
+          <div class="gh-item-name">${gh.name}</div>
+          <div class="gh-item-meta">
+            <span>${(gh.zones || []).length} zones</span>
+            <span>${totalPlants(gh)} plants</span>
+            <span>${(gh.doors || []).length} doors</span>
+          </div>`;
+        el.addEventListener('click', () => {
+          if (state.draft) return;
+          selectGreenhouse(gh.id);
+        });
+        listEl.appendChild(el);
+      });
+    }
+
+    function updatePanel(gh) {
+      document.getElementById('ctrlName').textContent = gh.name;
+      document.getElementById('ctrlZones').textContent = (gh.zones || []).length;
+      document.getElementById('ctrlPlants').textContent = totalPlants(gh);
+      document.getElementById('ctrlDoors').textContent = (gh.doors || []).length;
+      document.getElementById('ctrlBlocks').textContent = totalBlocks(gh);
+      document.getElementById('ctrlTemp').textContent = gh.temp + '°C';
+      document.getElementById('ctrlHumidity').textContent = gh.humidity + '%';
+      document.getElementById('tempSlider').value = gh.temp;
+      document.getElementById('humiditySlider').value = gh.humidity;
+      document.getElementById('ctrlVent').textContent = gh.ventilation;
+      document.getElementById('ctrlVent').className = 'badge' + (gh.ventilation === 'Off' ? ' idle' : '');
+      document.getElementById('ctrlIrrigation').textContent = gh.irrigation;
+      document.getElementById('ctrlIrrigation').className = 'badge' + (gh.irrigation === 'Idle' ? ' idle' : '');
+
+      const zlp = document.getElementById('zoneListPanel');
+      zlp.innerHTML = '';
+      (gh.zones || []).forEach(z => {
+        const el = document.createElement('div');
+        el.className = 'zone-list-item';
+        el.innerHTML = `<strong>${z.name}</strong><small>${z.date} · ${z.plants} plants</small>`;
+        el.addEventListener('click', () => {
+          const idx = (gh.zones || []).indexOf(z);
+          flyToZone(idx, true);
+        });
+        zlp.appendChild(el);
+      });
+      if (!gh.zones?.length) zlp.innerHTML = '<span style="color:var(--text-muted);font-size:0.8rem">No zones yet</span>';
+    }
+
+    function selectGreenhouse(id) {
+      if (state.draft) return;
+      state.selectedId = id;
+      state.editMode = false;
+      document.getElementById('editToolGroup').classList.add('hidden');
+      document.getElementById('stepBadge').classList.add('hidden');
+      const gh = state.greenhouses.find(g => g.id === id);
+      if (!gh) return;
+
+      document.getElementById('panelPlaceholder').style.display = 'none';
+      document.getElementById('panelControls').style.display = 'block';
+      document.getElementById('ctrlEditBadge').textContent = 'Viewing';
+      document.getElementById('ctrlEditBadge').className = 'badge';
+      overlayEl.textContent = `Viewing: ${gh.name} — click Edit to modify`;
+      updatePanel(gh);
+      state.navZoneIndex = -1;
+      updateNavLabel();
+      renderList();
+      drawFarm();
+    }
+
+    function getSelected() {
+      return state.greenhouses.find(g => g.id === state.selectedId);
+    }
+
+    function zoomAt(factor) {
+      const { w, h } = getCanvasSize();
+      const cx = w / 2, cy = h / 2;
+      const { scale, offsetX, offsetY } = state.viewport;
+      const newScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, scale * factor));
+      const wx = (cx - offsetX) / scale, wy = (cy - offsetY) / scale;
+      flyToWorld(wx, wy, newScale, 350, false);
+      playSound('zoom');
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      if (isModalOpen()) return;
+      if (!state.user) return;
+      const world = getMouseWorld(e);
+
+      if (!state.draft && !state.editMode) {
+        const hit = findGreenhouseAt(world.x, world.y);
+        if (hit) selectGreenhouse(hit.id);
+        return;
+      }
+
+      const gh = getTargetGh();
+      if (!gh) return;
+
+      if (state.tool === 'rect' && state.draft && !state.draft.rect) {
+        state.isDraggingRect = true;
+        state.rectStart = world;
+        state.previewRect = { x: world.x, y: world.y, w: 0, h: 0 };
+        return;
+      }
+
+      if (state.tool === 'door') { placeDoor(world.x, world.y); return; }
+
+      if (state.tool === 'block') { placeBlock(world.x, world.y); return; }
+
+      if (state.tool === 'zone' && gh.rect) {
+        if (!pointInRect(world.x, world.y, gh.rect, 4)) {
+          overlayEl.textContent = 'Draw only inside the black rectangle';
+          return;
+        }
+        state.isDrawingZone = true;
+        state.zonePoints = [clipToRect(world, gh.rect, 4)];
+        drawFarm();
+      }
+    });
+
+    canvas.addEventListener('mousemove', e => {
+      const world = getMouseWorld(e);
+      if (state.isDraggingRect && state.rectStart) {
+        state.previewRect = normalizeRect(state.rectStart.x, state.rectStart.y, world.x, world.y);
+        drawFarm();
+        return;
+      }
+      if (state.isDrawingZone && getTargetGh()?.rect) {
+        const gh = getTargetGh();
+        const clipped = clipToRect(world, gh.rect, 4);
+        const last = state.zonePoints[state.zonePoints.length - 1];
+        if ((clipped.x - last.x) ** 2 + (clipped.y - last.y) ** 2 < 4 / state.viewport.scale ** 2) return;
+        state.zonePoints.push(clipped);
+        drawFarm();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      if (state.isDraggingRect) {
+        state.isDraggingRect = false;
+        if (state.previewRect) finishRect(state.previewRect);
+        return;
+      }
+      if (state.isDrawingZone) finishZoneDraw();
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (state.isDraggingRect) {
+        state.isDraggingRect = false;
+        if (state.previewRect) finishRect(state.previewRect);
+      }
+      if (state.isDrawingZone) finishZoneDraw();
+    });
+
+    document.getElementById('btnUserLogin').addEventListener('click', () => loginUser(document.getElementById('userName').value));
+    document.getElementById('userName').addEventListener('keydown', e => {
+      if (e.key === 'Enter') loginUser(document.getElementById('userName').value);
+    });
+    document.getElementById('btnSwitchUser').addEventListener('click', () => {
+      state.draft = null;
+      state.editMode = false;
+      state.selectedId = null;
+      document.getElementById('userModal').classList.add('open');
+    });
+
+    document.getElementById('btnNewGreenhouse').addEventListener('click', startNewGreenhouse);
+    document.getElementById('btnToolRect').addEventListener('click', () => { if (state.draft && !state.draft.rect) setTool('rect'); });
+    document.getElementById('btnToolDoor').addEventListener('click', () => { if (state.draft?.rect) setTool('door'); });
+    document.getElementById('btnToolZone').addEventListener('click', () => { if (state.draft?.rect) setTool('zone'); });
+    document.getElementById('btnToolBlock').addEventListener('click', () => { if (state.draft?.rect) setTool('block'); });
+    document.getElementById('btnFinish').addEventListener('click', () => { if (state.draft?.rect) openGhModal(false); });
+
+    document.getElementById('btnEditGreenhouse').addEventListener('click', startEditGreenhouse);
+    document.getElementById('btnEditDoor').addEventListener('click', () => setTool('door'));
+    document.getElementById('btnEditZone').addEventListener('click', () => setTool('zone'));
+    document.getElementById('btnEditBlock').addEventListener('click', () => setTool('block'));
+    document.getElementById('btnSaveEdits').addEventListener('click', saveEdits);
+    document.getElementById('btnCancelEdit').addEventListener('click', cancelEdit);
+    document.getElementById('btnRenameGreenhouse').addEventListener('click', () => openGhModal(true));
+
+    document.getElementById('btnZoneSave').addEventListener('click', saveZone);
+    document.getElementById('btnZoneCancel').addEventListener('click', cancelZone);
+    document.getElementById('btnModalSave').addEventListener('click', saveGreenhouse);
+    document.getElementById('btnModalCancel').addEventListener('click', () => {
+      state.renameMode = false;
+      document.getElementById('ghModal').classList.remove('open');
+    });
+
+    document.getElementById('btnZoomIn').addEventListener('click', () => zoomAt(ZOOM_STEP));
+    document.getElementById('btnZoomOut').addEventListener('click', () => zoomAt(1 / ZOOM_STEP));
+
+    document.getElementById('zoomSlider').addEventListener('input', e => {
+      setZoomFromSlider(+e.target.value);
+    });
+
+    document.getElementById('brightSlider').addEventListener('input', e => {
+      state.view.brightness = +e.target.value;
+      document.getElementById('brightSliderVal').textContent = e.target.value + '%';
+      drawFarm();
+    });
+
+    document.getElementById('hueSlider').addEventListener('input', e => {
+      state.view.hue = +e.target.value;
+      document.getElementById('hueSliderVal').textContent = e.target.value + '°';
+      drawFarm();
+    });
+
+    document.getElementById('soundToggle').addEventListener('change', e => {
+      state.soundEnabled = e.target.checked;
+      if (state.soundEnabled) playSound('zoom');
+    });
+
+    document.getElementById('btnPrevZone').addEventListener('click', () => {
+      stopTour();
+      const i = state.navZoneIndex < 0 ? 0 : state.navZoneIndex - 1;
+      flyToZone(i, true);
+    });
+
+    document.getElementById('btnNextZone').addEventListener('click', () => {
+      stopTour();
+      const i = state.navZoneIndex < 0 ? 0 : state.navZoneIndex + 1;
+      flyToZone(i, true);
+    });
+
+    document.getElementById('btnTourZones').addEventListener('click', e => {
+      if (state.tourTimer) {
+        stopTour();
+        e.target.textContent = 'Auto Tour (random zoom)';
+        overlayEl.textContent = 'Tour stopped';
+      } else {
+        e.target.textContent = 'Stop Tour';
+        startTour();
+      }
+    });
+
+    document.getElementById('tempSlider').addEventListener('input', e => {
+      const gh = getSelected();
+      if (!gh) return;
+      gh.temp = +e.target.value;
+      document.getElementById('ctrlTemp').textContent = gh.temp + '°C';
+      persistData();
+    });
+
+    document.getElementById('humiditySlider').addEventListener('input', e => {
+      const gh = getSelected();
+      if (!gh) return;
+      gh.humidity = +e.target.value;
+      document.getElementById('ctrlHumidity').textContent = gh.humidity + '%';
+      persistData();
+    });
+
+    document.getElementById('btnToggleVent').addEventListener('click', () => {
+      const gh = getSelected();
+      if (!gh) return;
+      const cycle = { Auto: 'On', On: 'Off', Off: 'Auto' };
+      gh.ventilation = cycle[gh.ventilation];
+      document.getElementById('ctrlVent').textContent = gh.ventilation;
+      document.getElementById('ctrlVent').className = 'badge' + (gh.ventilation === 'Off' ? ' idle' : '');
+      persistData();
+    });
+
+    document.getElementById('btnRunIrrigation').addEventListener('click', () => {
+      const gh = getSelected();
+      if (!gh) return;
+      gh.irrigation = 'Running';
+      document.getElementById('ctrlIrrigation').textContent = 'Running';
+      document.getElementById('ctrlIrrigation').className = 'badge';
+      persistData();
+      setTimeout(() => {
+        gh.irrigation = 'Idle';
+        if (state.selectedId === gh.id) {
+          document.getElementById('ctrlIrrigation').textContent = 'Idle';
+          document.getElementById('ctrlIrrigation').className = 'badge idle';
+          persistData();
+        }
+      }, 3000);
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    initUser();
+    resizeCanvas();
+    startSunAnimation();
+  </script>
+</body>
+</html>
